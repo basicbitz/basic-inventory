@@ -1,3 +1,7 @@
+# Don't upload this stuff
+api_config.py
+inventory.db
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
