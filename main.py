@@ -48,9 +48,7 @@ game_name='Zelda II Link'
 
 # TODO: Add UPC TABLE (write UPC to both tables)
 # TODO: Allow adding game based on name with confirmation/approval (verify proper game found on text search before saving)
-# TODO: Manage game quantity (allow increment QTY if game entry already exists in GAMES)
 # TODO: Allow decrement/removal if games are sold
-# TODO: look at sqlalchemy or peewee
 # TODO: Add column for box label
 
 # Sample UPCS
