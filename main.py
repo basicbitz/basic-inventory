@@ -47,11 +47,11 @@ game_name='Zelda II Link'
 #          UPC            INT);''')
 
 # TODO: Add UPC TABLE (write UPC to both tables)
-# TODO: Add readline/pause/scanner capability
 # TODO: Allow adding game based on name with confirmation/approval (verify proper game found on text search before saving)
 # TODO: Manage game quantity (allow increment QTY if game entry already exists in GAMES)
 # TODO: Allow decrement/removal if games are sold
 # TODO: look at sqlalchemy or peewee
+# TODO: Add column for box label
 
 # Sample UPCS
 # Zelda II NES
@@ -71,13 +71,22 @@ upc=0 # init upc var
 while upc != "exit": # keep running until user types 'exit'
     upc = input("Enter Video Game UPC Code: ") # get the UPC code from user
 
+    query = Games.select().where(Games.upc == upc) # Check if the UPC already exists in the DB
+    # for game in query:
+    #     print(game.product_name, game.id, game.upc)
 
     # Sample output
     # {'console-name': 'Super Nintendo', 'id': '6910', 'loose-price': 32906, 'product-name': 'EarthBound', 'status': 'success'}
 
     # resp = requests.get(api_url, params={'t': api_config.token, 'id': game_id})
     # resp = requests.get(api_url, params={'t': api_config.token, 'q': game_name})
-    if upc != "exit": # if 'upc' is not set to 'exit', let's get the game info and store it
+    duplicate = bool(query) # is False if UPC does not exist in DB table, is True if UPC does already exist in DB table
+
+    if duplicate == True: # if the UPC already exists in the DB table, let's increment the QTY
+        increment_qty = Games.update({Games.qty: Games.qty + 1}).where(Games.upc == upc)
+        increment_qty.execute()
+        
+    if (duplicate == False) and (upc != "exit"): # if 'upc' is not set to 'exit', let's get the game info and store it
         resp = requests.get(api_url, params={'t': api_config.token, 'upc': upc})
         pp = pprint.PrettyPrinter(indent=4) 
         # pp.pprint(resp.headers)
