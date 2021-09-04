@@ -5,7 +5,6 @@ import json
 import api_config
 import requests
 import pprint
-import sqlite3
 import datetime
 from peewee import *
 
@@ -30,13 +29,12 @@ db.create_tables([Games])
 api_url = 'https://www.pricecharting.com/api/product'
 
 # Game ID and name not needed, search by UPC unless UPC not available
-game_id='6910'
-game_name='Zelda II Link'
+# game_id='6910'
+# game_name='Zelda II Link'
 
 # Create the DB
 # conn = sqlite3.connect('inventory.db')
 # print("Opened database successfully")
-
 # conn.execute('''CREATE TABLE IF NOT EXISTS GAMES
 #          (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 #          VGPC_ID        INT     NOT NULL,
@@ -70,14 +68,10 @@ while upc != "exit": # keep running until user types 'exit'
     upc = input("Enter Video Game UPC Code: ") # get the UPC code from user
 
     query = Games.select().where(Games.upc == upc) # Check if the UPC already exists in the DB
-    # for game in query:
-    #     print(game.product_name, game.id, game.upc)
 
     # Sample output
     # {'console-name': 'Super Nintendo', 'id': '6910', 'loose-price': 32906, 'product-name': 'EarthBound', 'status': 'success'}
 
-    # resp = requests.get(api_url, params={'t': api_config.token, 'id': game_id})
-    # resp = requests.get(api_url, params={'t': api_config.token, 'q': game_name})
     duplicate = bool(query) # is False if UPC does not exist in DB table, is True if UPC does already exist in DB table
 
     if duplicate == True: # if the UPC already exists in the DB table, let's increment the QTY
@@ -96,7 +90,7 @@ while upc != "exit": # keep running until user types 'exit'
         game['console_name'] = resp.json()['console-name'] # name of console
         game['loose_price'] = resp.json()['loose-price'] # loose price of game
         game['upc'] = upc
-        qty=1 # this needs to be actual QTY (if new entry, set to 1 - increment each additional)
+        qty=1 # if new entry, set to 1 - increment each additional)
 
         pp.pprint(game)
 
@@ -108,13 +102,5 @@ while upc != "exit": # keep running until user types 'exit'
                             qty=1)
         
         game2.save()
-
-        # for x in range(5000):
-        #     conn.execute(f"INSERT INTO GAMES (VGPC_ID,PRODUCT_NAME,CONSOLE_NAME,LOOSE_PRICE,QTY,UPC) \
-        #         VALUES ({game['vgpc_id']}, '{game['product_name']}', '{game['console_name']}', {game['loose_price']}, {qty}, {upc})" );
-        # conn.execute(f"INSERT INTO GAMES (VGPC_ID,PRODUCT_NAME,CONSOLE_NAME,LOOSE_PRICE,QTY,UPC) \
-            # VALUES ({game['vgpc_id']}, '{game['product_name']}', '{game['console_name']}', {game['loose_price']}, {qty}, {upc})" );
-# conn.commit()
-# conn.close()
 
 db.close()
