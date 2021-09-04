@@ -83,13 +83,14 @@ while upc != "exit": # keep running until user types 'exit'
         pp = pprint.PrettyPrinter(indent=4) 
         # pp.pprint(resp.headers)
         # pp.pprint(resp.json())
-
-        game={} # initialize the game dict
-        game['vgpc_id'] = resp.json()['id'] # Video Game Price Charting game ID
-        game['product_name'] = resp.json()['product-name'] # product name
-        game['console_name'] = resp.json()['console-name'] # name of console
-        game['loose_price'] = resp.json()['loose-price'] # loose price of game
-        game['upc'] = upc
+        
+        r = resp.json()
+        game={ 'vgpc_id': r['id'],
+               'product_name': r['product-name'], 
+               'console_name': r['console-name'],
+               'loose_price': r['loose-price'],
+               'upc': upc }
+               
         qty=1 # if new entry, set to 1 - increment each additional)
 
         pp.pprint(game)
