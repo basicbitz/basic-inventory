@@ -6,6 +6,26 @@ import api_config
 import requests
 import pprint
 import sqlite3
+import datetime
+from peewee import *
+
+db = SqliteDatabase('inventory.db')
+
+class Games(Model):
+    id = AutoField(primary_key=True)
+    vgpc_id = IntegerField()
+    product_name = TextField()
+    console_name = TextField()
+    loose_price = IntegerField()
+    qty = IntegerField()
+    upc = IntegerField(unique=True)
+    timestamp = DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        database = db # This model uses the "people.db" database.
+
+db.connect()
+db.create_tables([Games])
 
 api_url = 'https://www.pricecharting.com/api/product'
 
@@ -14,17 +34,17 @@ game_id='6910'
 game_name='Zelda II Link'
 
 # Create the DB
-conn = sqlite3.connect('inventory.db')
-print("Opened database successfully")
+# conn = sqlite3.connect('inventory.db')
+# print("Opened database successfully")
 
-conn.execute('''CREATE TABLE IF NOT EXISTS GAMES
-         (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-         VGPC_ID        INT     NOT NULL,
-         PRODUCT_NAME   TEXT    NOT NULL,
-         CONSOLE_NAME   TEXT    NOT NULL,
-         LOOSE_PRICE    INT     NOT NULL,
-         QTY            INT     NOT NULL,
-         UPC            INT);''')
+# conn.execute('''CREATE TABLE IF NOT EXISTS GAMES
+#          (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+#          VGPC_ID        INT     NOT NULL,
+#          PRODUCT_NAME   TEXT    NOT NULL,
+#          CONSOLE_NAME   TEXT    NOT NULL,
+#          LOOSE_PRICE    INT     NOT NULL,
+#          QTY            INT     NOT NULL,
+#          UPC            INT);''')
 
 # TODO: Add UPC TABLE (write UPC to both tables)
 # TODO: Add readline/pause/scanner capability
@@ -42,6 +62,10 @@ conn.execute('''CREATE TABLE IF NOT EXISTS GAMES
 # upc='040421830183'
 # Scaler Gamecube
 # upc='710425245763'
+# Doom 32X
+# upc='010086845068'
+# Metal Head 32X
+# upc='010086845112'
 
 upc=0 # init upc var
 while upc != "exit": # keep running until user types 'exit'
@@ -64,15 +88,26 @@ while upc != "exit": # keep running until user types 'exit'
         game['product_name'] = resp.json()['product-name'] # product name
         game['console_name'] = resp.json()['console-name'] # name of console
         game['loose_price'] = resp.json()['loose-price'] # loose price of game
+        game['upc'] = upc
         qty=1 # this needs to be actual QTY (if new entry, set to 1 - increment each additional)
 
         pp.pprint(game)
 
+        game2 = Games.create(vgpc_id=game['vgpc_id'],
+                            product_name=game['product_name'],
+                            console_name=game['console_name'],
+                            loose_price=game['loose_price'],
+                            upc=game['upc'],
+                            qty=1)
+        
+        game2.save()
+
         # for x in range(5000):
         #     conn.execute(f"INSERT INTO GAMES (VGPC_ID,PRODUCT_NAME,CONSOLE_NAME,LOOSE_PRICE,QTY,UPC) \
         #         VALUES ({game['vgpc_id']}, '{game['product_name']}', '{game['console_name']}', {game['loose_price']}, {qty}, {upc})" );
-        conn.execute(f"INSERT INTO GAMES (VGPC_ID,PRODUCT_NAME,CONSOLE_NAME,LOOSE_PRICE,QTY,UPC) \
-            VALUES ({game['vgpc_id']}, '{game['product_name']}', '{game['console_name']}', {game['loose_price']}, {qty}, {upc})" );
-conn.commit()
+        # conn.execute(f"INSERT INTO GAMES (VGPC_ID,PRODUCT_NAME,CONSOLE_NAME,LOOSE_PRICE,QTY,UPC) \
+            # VALUES ({game['vgpc_id']}, '{game['product_name']}', '{game['console_name']}', {game['loose_price']}, {qty}, {upc})" );
+# conn.commit()
+# conn.close()
 
-conn.close()
+db.close()
