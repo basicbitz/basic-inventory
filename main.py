@@ -65,9 +65,6 @@ while upc != "exit": # keep running until user types 'exit'
 
     query = Games.select().where(Games.upc == upc) # Check if the UPC already exists in the DB
 
-    # Sample output
-    # {'console-name': 'Super Nintendo', 'id': '6910', 'loose-price': 32906, 'product-name': 'EarthBound', 'status': 'success'}
-
     duplicate = bool(query) # is False if UPC does not exist in DB table, is True if UPC does already exist in DB table
 
     if duplicate == True: # if the UPC already exists in the DB table, let's increment the QTY
@@ -81,6 +78,9 @@ while upc != "exit": # keep running until user types 'exit'
         # pp.pprint(resp.json())
         
         r = resp.json()
+        
+        # Sample output
+        # {'console-name': 'Super Nintendo', 'id': '6910', 'loose-price': 32906, 'product-name': 'EarthBound', 'status': 'success'}
         pp.pprint(r)
 
         game = Games.create(vgpc_id = r['id'],
