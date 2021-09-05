@@ -12,13 +12,13 @@ db = SqliteDatabase('inventory.db')
 
 class Games(Model):
     id = AutoField(primary_key=True)
-    # location = TextField()
+    location = TextField()
     vgpc_id = IntegerField()
     product_name = TextField()
     console_name = TextField()
     loose_price = IntegerField()
     qty = IntegerField()
-    upc = IntegerField(unique=True)
+    upc = IntegerField()
     timestamp = DateTimeField(default=datetime.datetime.now)
 
     class Meta:
@@ -60,19 +60,28 @@ api_url = 'https://www.pricecharting.com/api/product'
 # Metal Head 32X - upc = '010086845112'
 
 upc = 0 # init upc var
-while upc != "exit": # keep running until user types 'exit'
-    upc = input("Enter Video Game UPC Code: ") # get the UPC code from user
+answer = None
+box_loc = None # init box location var - example, b1
+while answer != "exit": # keep running until user types 'exit'
+    answer = input("Enter Video Game UPC Code, Box Location Code, or 'exit' to exit: ") # get the UPC code from user
 
-    query = Games.select().where(Games.upc == upc) # Check if the UPC already exists in the DB
+    if answer.startswith('b'):
+        box_loc = answer
+        continue
 
+    if not box_loc:
+        print("Box location must be set before scanning UPC codes!")
+        continue
+    
+    query = Games.select().where(Games.upc == answer) # Check if the UPC already exists in the DB
     duplicate = bool(query) # is False if UPC does not exist in DB table, is True if UPC does already exist in DB table
 
     if duplicate == True: # if the UPC already exists in the DB table, let's increment the QTY
-        increment_qty = Games.update({Games.qty: Games.qty + 1}).where(Games.upc == upc)
+        increment_qty = Games.update({Games.qty: Games.qty + 1}).where(Games.upc == answer)
         increment_qty.execute()
         
-    if (duplicate == False) and (upc != "exit"): # if 'upc' is not set to 'exit', let's get the game info and store it
-        resp = requests.get(api_url, params = {'t': api_config.token, 'upc': upc})
+    if (duplicate == False) and (answer != "exit"): # if 'upc' is not set to 'exit', let's get the game info and store it
+        resp = requests.get(api_url, params = {'t': api_config.token, 'upc': answer})
         pp = pprint.PrettyPrinter(indent = 4) 
         # pp.pprint(resp.headers)
         # pp.pprint(resp.json())
@@ -84,10 +93,11 @@ while upc != "exit": # keep running until user types 'exit'
         pp.pprint(r)
 
         game = Games.create(vgpc_id = r['id'],
+                            location = box_loc,
                             product_name = r['product-name'], 
                             console_name = r['console-name'],
                             loose_price = r['loose-price'],
-                            upc = upc,
+                            upc = answer,
                             qty = 1)
         
         game.save()
