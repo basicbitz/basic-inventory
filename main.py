@@ -12,6 +12,7 @@ db = SqliteDatabase('inventory.db')
 
 class Games(Model):
     id = AutoField(primary_key=True)
+    # location = TextField()
     vgpc_id = IntegerField()
     product_name = TextField()
     console_name = TextField()
@@ -48,6 +49,7 @@ api_url = 'https://www.pricecharting.com/api/product'
 # TODO: Allow adding game based on name with confirmation/approval (verify proper game found on text search before saving)
 # TODO: Allow decrement/removal if games are sold
 # TODO: Add column for box label
+# TODO: Handle `{'error-message': 'No such product', 'status': 'error'}` when UPC scanned is not a valid game UPC
 
 # Sample UPCS
 # Zelda II NES
@@ -63,7 +65,7 @@ api_url = 'https://www.pricecharting.com/api/product'
 # Metal Head 32X
 # upc='010086845112'
 
-upc=0 # init upc var
+upc = 0 # init upc var
 while upc != "exit": # keep running until user types 'exit'
     upc = input("Enter Video Game UPC Code: ") # get the UPC code from user
 
@@ -79,29 +81,21 @@ while upc != "exit": # keep running until user types 'exit'
         increment_qty.execute()
         
     if (duplicate == False) and (upc != "exit"): # if 'upc' is not set to 'exit', let's get the game info and store it
-        resp = requests.get(api_url, params={'t': api_config.token, 'upc': upc})
-        pp = pprint.PrettyPrinter(indent=4) 
+        resp = requests.get(api_url, params = {'t': api_config.token, 'upc': upc})
+        pp = pprint.PrettyPrinter(indent = 4) 
         # pp.pprint(resp.headers)
         # pp.pprint(resp.json())
         
         r = resp.json()
-        game={ 'vgpc_id': r['id'],
-               'product_name': r['product-name'], 
-               'console_name': r['console-name'],
-               'loose_price': r['loose-price'],
-               'upc': upc }
-               
-        qty=1 # if new entry, set to 1 - increment each additional)
+        pp.pprint(r)
 
-        pp.pprint(game)
-
-        game2 = Games.create(vgpc_id=game['vgpc_id'],
-                            product_name=game['product_name'],
-                            console_name=game['console_name'],
-                            loose_price=game['loose_price'],
-                            upc=game['upc'],
-                            qty=1)
+        game = Games.create(vgpc_id = r['id'],
+                            product_name = r['product-name'], 
+                            console_name = r['console-name'],
+                            loose_price = r['loose-price'],
+                            upc = upc,
+                            qty = 1)
         
-        game2.save()
+        game.save()
 
 db.close()
