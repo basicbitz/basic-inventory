@@ -52,18 +52,12 @@ api_url = 'https://www.pricecharting.com/api/product'
 # TODO: Handle `{'error-message': 'No such product', 'status': 'error'}` when UPC scanned is not a valid game UPC
 
 # Sample UPCS
-# Zelda II NES
-# upc='045496630331'
-# Dragon Warrior NES
-# upc='045496630379'
-# Boogerman SEGA
-# upc='040421830183'
-# Scaler Gamecube
-# upc='710425245763'
-# Doom 32X
-# upc='010086845068'
-# Metal Head 32X
-# upc='010086845112'
+# Zelda II NES - upc = '045496630331'
+# Dragon Warrior NES - upc = '045496630379'
+# Boogerman SEGA - upc = '040421830183'
+# Scaler Gamecube - upc = '710425245763'
+# Doom 32X - upc = '010086845068'
+# Metal Head 32X - upc = '010086845112'
 
 upc = 0 # init upc var
 while upc != "exit": # keep running until user types 'exit'
