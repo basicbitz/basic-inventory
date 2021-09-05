@@ -8,6 +8,10 @@ import pprint
 import datetime
 from peewee import *
 
+def game_exists( upc, box_loc ):
+    query = Games.select().where((Games.upc == upc) & (Games.location == box_loc)) # Check if the UPC already exists in the DB
+    return(bool(query)) # is False if UPC does not exist in DB table, is True if UPC does already exist in DB table
+
 db = SqliteDatabase('inventory.db')
 
 class Games(Model):
@@ -60,12 +64,14 @@ api_url = 'https://www.pricecharting.com/api/product'
 # Metal Head 32X - upc = '010086845112'
 
 upc = 0 # init upc var
-answer = None
 box_loc = None # init box location var - example, b1
-while answer != "exit": # keep running until user types 'exit'
+while True: # keep running until user types 'exit'
     answer = input("Enter Video Game UPC Code, Box Location Code, or 'exit' to exit: ") # get the UPC code from user
 
-    if answer.startswith('b'):
+    if answer == "exit":
+        break
+
+    if answer.startswith('b') or answer.startswith('s'):
         box_loc = answer
         continue
 
@@ -73,14 +79,13 @@ while answer != "exit": # keep running until user types 'exit'
         print("Box location must be set before scanning UPC codes!")
         continue
     
-    query = Games.select().where(Games.upc == answer) # Check if the UPC already exists in the DB
-    duplicate = bool(query) # is False if UPC does not exist in DB table, is True if UPC does already exist in DB table
+    # query = Games.select().where(Games.upc == answer) # Check if the UPC already exists in the DB
+    # duplicate = bool(query) # is False if UPC does not exist in DB table, is True if UPC does already exist in DB table
 
-    if duplicate == True: # if the UPC already exists in the DB table, let's increment the QTY
-        increment_qty = Games.update({Games.qty: Games.qty + 1}).where(Games.upc == answer)
+    if game_exists( answer, box_loc ): # if the UPC already exists in the DB table, let's increment the QTY
+        increment_qty = Games.update({Games.qty: Games.qty + 1}).where((Games.upc == answer) & (Games.location == box_loc))
         increment_qty.execute()
-        
-    if (duplicate == False) and (answer != "exit"): # if 'upc' is not set to 'exit', let's get the game info and store it
+    else: # if 'upc' is not set to 'exit', let's get the game info and store it
         resp = requests.get(api_url, params = {'t': api_config.token, 'upc': answer})
         pp = pprint.PrettyPrinter(indent = 4) 
         # pp.pprint(resp.headers)
@@ -103,3 +108,4 @@ while answer != "exit": # keep running until user types 'exit'
         game.save()
 
 db.close()
+
