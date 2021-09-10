@@ -11,7 +11,7 @@
 # Doom 32X - upc = '010086845068'
 # Metal Head 32X - upc = '010086845112'
 
-# Need api_config.py file with 'token' set for this to work
+# Need api_config.py file with token='apikey' set for this to work
 import json
 import api_config
 import requests
@@ -21,7 +21,7 @@ from peewee import *
 from playhouse.shortcuts import model_to_dict, dict_to_model
 
 def game_inc(upc, loc):
-    increment_qty = Games.update({Games.qty: Games.qty + 1}).where((Games.upc == upc) & (Games.location == loc))
+    increment_qty = Games.update({Games.qty: Games.qty + 1}).where((Games.upc == upc) & (Games.location == loc) & (Games.condition == cond))
     increment_qty.execute()
 
 def get_remote_game_data(upc):
@@ -36,8 +36,8 @@ def game_create(game):
     game.save()
     return game.id
 
-def db_get_game(upc, loc):
-    return Games.select().where((Games.upc == upc) & (Games.location == loc))
+def db_get_game(upc, loc, cond):
+    return Games.select().where((Games.upc == upc) & (Games.location == loc) & (Games.condition == cond))
 
 def db_get_game_id(id):
     return Games.get_by_id(id)
@@ -47,6 +47,7 @@ db = SqliteDatabase('inventory.db')
 class Games(Model):
     id = AutoField(primary_key=True)
     location = TextField()
+    condition = TextField()
     vgpc_id = IntegerField()
     product_name = TextField()
     console_name = TextField()
@@ -65,28 +66,34 @@ api_url = 'https://www.pricecharting.com/api/product'
 
 pp = pprint.PrettyPrinter(indent = 4)
 
+cond = None # init location cond - example, cloose for loose, ccib for complete in box, cib for in box not complete, cnew for new
 loc = None # init location var - example, b1 for box1, s3 for shelf 3
 while True: # keep running until user types 'exit'
-    answer = input("Enter Video Game UPC Code, Box Location Code, or 'exit' to exit: ") # get the UPC code from user
+    print("Current settings: Location = {}, Condition = {}".format(loc,cond))
+    answer = input("Enter Video Game UPC Code, Condition Code, Box Location Code, or 'exit' to exit: ") # get the UPC code from user
 
     if answer == "exit":
         break
 
-    if answer.startswith('b') or answer.startswith('s'):
+    if answer == "cloose" or answer == "cnew" or answer == "ccib" or answer == "cib":
+        cond = answer
+        continue
+
+    if answer.startswith('b') or answer.startswith('s'): # if the answer starts with 'b' or 's', we are setting the location
         loc = answer
         continue
 
-    if not loc:
-        print("Box location must be set before scanning UPC codes!")
+    if not loc or not cond: # make sure we have a condition and location set before scanning UPC codes
+        print("Box location and condition must be set before scanning UPC codes!")
         continue
     
     game_id = None
-    if db_get_game(answer, loc): # if the UPC already exists in the DB table, let's increment the QTY
+    if db_get_game(answer, loc, cond): # if the UPC already exists in the DB table, let's increment the QTY
         print("Duplicate game and location, incrementing qty")
         game_inc(answer, loc)
-        for row in db_get_game(answer, loc):
+        for row in db_get_game(answer, loc, cond):
             game_id = row.id
-    else: # if 'upc' is not set to 'exit', let's get the game info and store it
+    else: # if 'answer' is not set to 'exit', let's get the game and store it
         print("Didn't find game")
         # pp.pprint(resp.headers)
         # pp.pprint(resp.json())
@@ -97,6 +104,7 @@ while True: # keep running until user types 'exit'
         id = game_create({
             'vgpc_id': r['id'],
             'location': loc,
+            'condition': cond,
             'product_name': r['product-name'], 
             'console_name': r['console-name'],
             'loose_price': r['loose-price'],
