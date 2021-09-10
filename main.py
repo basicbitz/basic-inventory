@@ -11,7 +11,7 @@
 # Doom 32X - upc = '010086845068'
 # Metal Head 32X - upc = '010086845112'
 
-# Need api_config.py file with 'token' set for this to work
+# Need api_config.py file with token='apikey' set for this to work
 import json
 import api_config
 import requests
