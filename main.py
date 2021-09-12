@@ -75,11 +75,11 @@ while True: # keep running until user types 'exit'
     if answer == "exit":
         break
 
-    if answer == "cloose" or answer == "cnew" or answer == "ccib" or answer == "cib":
+    if answer == "CLOOSE" or answer == "CNEW" or answer == "CCIB" or answer == "CIB":
         cond = answer
         continue
 
-    if answer.startswith('b') or answer.startswith('s'): # if the answer starts with 'b' or 's', we are setting the location
+    if answer.startswith('BOX') or answer.startswith('SHELF'): # if the answer starts with 'b' or 's', we are setting the location
         loc = answer
         continue
 
